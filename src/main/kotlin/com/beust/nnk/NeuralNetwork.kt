@@ -39,15 +39,14 @@ class NeuralNetwork(val passedInput: Int, val nh: Int, val no: Int) {
         }
 
         // Input activations (note: -1 since we don't count the bias node)
-        range(ni - 1).forEach {
+        (ni - 1).times {
             ai[it] = inputs[it]
         }
 
         // Hidden activations
-        range(nh).withIndex().forEach { iv ->
-            val j = iv.index
+        nh.times { j ->
             var sum = 0.0f
-            range(ni).forEach { i ->
+            ni.times { i ->
                 val w: List<Float> = wi[i]
                 log(logLevel, "    sum += ai[i] ${ai[i]} * wi[i][j] ${wi[i][j]}")
                 sum += ai[i] * wi[i][j]
@@ -57,9 +56,9 @@ class NeuralNetwork(val passedInput: Int, val nh: Int, val no: Int) {
         }
 
         // Output activations
-        range(no).forEach { k ->
+        no.times { k ->
             var sum = 0.0f
-            range(nh).forEach { j ->
+            nh.times { j ->
                 log(logLevel, "    sum += ah[$j] ${ah[j]} * wo[$j][$k] ${wo[j][k]}")
                 log(logLevel, "         = " + ah[j] * wo[j][k])
                 sum += ah[j] * wo[j][k]
@@ -81,24 +80,24 @@ class NeuralNetwork(val passedInput: Int, val nh: Int, val no: Int) {
 
         // Calculate error terms for output
         val outputDeltas = Vector(no)
-        range(no).forEach { k ->
+        no.times { k ->
             val error = targets[k] - ao[k]
             outputDeltas[k] = sigmoidDerivative(ao[k]) * error
         }
 
         // Calculate error terms for hidden layers
         val hiddenDeltas = Vector(nh)
-        range(nh).forEach { j ->
+        nh.times { j ->
             var error = 0.0f
-            range(no).forEach { k ->
+            no.times { k ->
                 error += outputDeltas[k] * wo[j][k]
             }
             hiddenDeltas[j] = sigmoidDerivative(ah[j]) * error
         }
 
         // Update output weights
-        range(nh).forEach { j ->
-            range(no).forEach { k ->
+        nh.times { j ->
+            no.times { k ->
                 val change = outputDeltas[k] * ah[j]
                 wo[j][k] = wo[j][k] + learningRate * change + momentum * co[j][k]
                 co[j][k] = change
@@ -106,8 +105,8 @@ class NeuralNetwork(val passedInput: Int, val nh: Int, val no: Int) {
         }
 
         // Update input weights
-        range(ni).forEach { i ->
-            range(nh).forEach { j ->
+        ni.times { i ->
+            nh.times { j ->
                 val change = hiddenDeltas[j] * ai[i]
                 wi[i][j] = wi[i][j] + learningRate * change + momentum * ci[i][j]
                 ci[i][j] = change
@@ -116,7 +115,7 @@ class NeuralNetwork(val passedInput: Int, val nh: Int, val no: Int) {
 
         // Calculate error
         var error = 0.0
-        range(targets.size).forEach { k ->
+        targets.size.times { k ->
             val diff = targets[k] - ao[k]
             error += 0.5 * diff * diff
         }
@@ -126,7 +125,7 @@ class NeuralNetwork(val passedInput: Int, val nh: Int, val no: Int) {
 
     fun train(networkDatas: List<NetworkData>, iterations: Int = 1000, learningRate: Float = 0.5f,
             momentum: Float = 0.1f) {
-        range(iterations).forEach { iteration ->
+        iterations.times { iteration ->
             var error = 0.0f
             networkDatas.forEach { pattern ->
                 update(pattern.inputs, 3)

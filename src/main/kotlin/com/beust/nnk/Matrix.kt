@@ -6,10 +6,10 @@ open class Matrix(val rows: Int, val columns: Int, defaultValue: () -> Float = {
     val content = ArrayList<ArrayList<Float>>(rows * columns)
 
     init {
-        range(rows).forEach { j ->
+        rows.times { j ->
             val nl = ArrayList<Float>()
             content.add(nl)
-            range(columns).forEach {
+            columns.times {
                 nl.add(defaultValue())
             }
         }
@@ -21,8 +21,8 @@ open class Matrix(val rows: Int, val columns: Int, defaultValue: () -> Float = {
 
     fun dump() : String {
         val result = StringBuilder()
-        range(rows).forEach { i ->
-            range(columns).forEach { j ->
+        rows.times { i ->
+            columns.times { j ->
                 result.append(content[i][j].format(2)).append(" ")
             }
             result.append("\n")

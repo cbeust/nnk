@@ -6,6 +6,8 @@ fun log(level: Int, s: String) {
     if (LOG_LEVEL >= level) println(s)
 }
 
+inline fun Int.times(apply: (Int) -> Unit) = (0..this - 1).forEach { apply(it) }
+
 fun main(args: Array<String>) {
     log(1, "Running neural network xor()")
     xor()
@@ -22,11 +24,12 @@ fun isOdd2() {
         val patterns = (0..100).map {
             NetworkData.create(listOf(it), listOf(it % 2))
         }
+        train(patterns)
+
         val testPatterns = listOf(
             NetworkData.create(listOf(21), listOf(1)),
             NetworkData.create(listOf(32), listOf(0))
         )
-        train(patterns)
         test(testPatterns)
 
         dump()
@@ -45,11 +48,12 @@ fun isOdd() {
             NetworkData.create(listOf(0, 1, 1, 0), listOf(0)),
             NetworkData.create(listOf(0, 1, 1, 1), listOf(1))
         )
+        train(patterns)
+
         val testPatterns = listOf(
             NetworkData.create(listOf(1, 0, 1, 1), listOf(1)),
             NetworkData.create(listOf(1, 1, 1, 0), listOf(0))
         )
-        train(patterns)
         test(testPatterns)
 
         dump()
@@ -67,5 +71,3 @@ fun xor() {
         test(patterns)
     }
 }
-
-fun range(n: Int) = (0..n-1)
