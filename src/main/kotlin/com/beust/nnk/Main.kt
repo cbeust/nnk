@@ -6,8 +6,6 @@ fun log(level: Int, s: String) {
     if (LOG_LEVEL >= level) println(s)
 }
 
-inline fun Int.times(action: (Int) -> Unit) = (0..this - 1).forEach { action(it) }
-
 fun main(args: Array<String>) {
     log(1, "Running neural network xor()")
     xor()

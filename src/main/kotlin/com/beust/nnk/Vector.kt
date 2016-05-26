@@ -5,7 +5,7 @@ import java.util.*
 class Vector(val size: Int, val defaultValue: () -> Float = { -> 0.0f }) {
     val content = ArrayList<Float>(size)
     init {
-        size.times {
+        repeat(size) {
             content.add(defaultValue())
         }
     }
