@@ -2,7 +2,10 @@ package com.beust.nnk
 
 import java.util.*
 
-class NeuralNetwork(val passedInput: Int, val nh: Int, val no: Int) {
+/**
+ * A simple neural network with one hidden layer.
+ */
+class NeuralNetwork(val passedInput: Int, val hiddenSize: Int, val outputSize: Int) {
 
 //    class Vector2(val size: Int, val defaultValue: () -> Float = { -> 0.0f }) : Matrix(size, 1, defaultValue) {
 //        operator fun set(it: Int, value: Float) {
@@ -14,121 +17,137 @@ class NeuralNetwork(val passedInput: Int, val nh: Int, val no: Int) {
     val random = Random(1)
     fun rand(min: Float, max: Float) = random.nextFloat() * (max - min) + min
 
-    val ni = passedInput + 1 // Add one for the bias node
+    val inputSize = passedInput + 1 // Add one for the bias node
 
     // Activations for nodes
-    val ai = Vector(ni, { -> 1.0f })
-    val ah = Vector(nh, { -> 1.0f })
-    val ao = Vector(no, { -> 1.0f })
+    val activationInput = Vector(inputSize, { -> 1.0f })
+    val activationHidden = Vector(hiddenSize, { -> 1.0f })
+    val activationOutput = Vector(outputSize, { -> 1.0f })
 
     // Weights
-    val wi = Matrix(ni, nh, { -> rand(-0.2f, 0.2f) })
-    val wo = Matrix(nh, no, { -> rand(-0.2f, 0.2f) })
+    val weightInput = Matrix(inputSize, hiddenSize, { -> rand(-0.2f, 0.2f) })
+    val weightOutput = Matrix(hiddenSize, outputSize, { -> rand(-0.2f, 0.2f) })
 
     // Weights for momentum
-    val ci = Matrix(ni, nh)
-    val co = Matrix(nh, no)
+    val momentumInput = Matrix(inputSize, hiddenSize)
+    val momentumOutput = Matrix(hiddenSize, outputSize)
 
+    // These two should probably be passed as a strategy so we can experiment with different
+    // activation functions but hardcoding tanh for now
     fun sigmoid(x: Float) = Math.tanh(x.toDouble()).toFloat()
-
     fun sigmoidDerivative(x: Float) = 1.0f - x * x
 
+    /**
+     * Update the graph with the given inputs.
+     * @return the outputs as a vector.
+     */
     fun update(inputs: List<Float>, logLevel: Int) : Vector {
-        if (inputs.size != ni -1) {
-            throw RuntimeException("Expected ${ni - 1} inputs but got ${inputs.size}")
+        if (inputs.size != inputSize -1) {
+            throw RuntimeException("Expected ${inputSize - 1} inputs but got ${inputs.size}")
         }
 
         // Input activations (note: -1 since we don't count the bias node)
-        repeat(ni - 1) {
-            ai[it] = inputs[it]
+        repeat(inputSize - 1) {
+            activationInput[it] = inputs[it]
         }
 
         // Hidden activations
-        repeat(nh) { j ->
+        repeat(hiddenSize) { j ->
             var sum = 0.0f
-            repeat(ni) { i ->
-                val w: List<Float> = wi[i]
-                log(logLevel, "    sum += ai[i] ${ai[i]} * wi[i][j] ${wi[i][j]}")
-                sum += ai[i] * wi[i][j]
+            repeat(inputSize) { i ->
+                val w: List<Float> = weightInput[i]
+                log(logLevel, "    sum += ai[i] ${activationInput[i]} * wi[i][j] ${weightInput[i][j]}")
+                sum += activationInput[i] * weightInput[i][j]
             }
-            ah[j] = sigmoid(sum)
-            log(logLevel, "    final sum going into ah[$j]: " + ah[j])
+            activationHidden[j] = sigmoid(sum)
+            log(logLevel, "    final sum going into ah[$j]: " + activationHidden[j])
         }
 
         // Output activations
-        repeat(no) { k ->
+        repeat(outputSize) { k ->
             var sum = 0.0f
-            repeat(nh) { j ->
-                log(logLevel, "    sum += ah[$j] ${ah[j]} * wo[$j][$k] ${wo[j][k]}")
-                log(logLevel, "         = " + ah[j] * wo[j][k])
-                sum += ah[j] * wo[j][k]
+            repeat(hiddenSize) { j ->
+                log(logLevel, "    sum += ah[$j] ${activationHidden[j]} * wo[$j][$k] ${weightOutput[j][k]}")
+                log(logLevel, "         = " + activationHidden[j] * weightOutput[j][k])
+                sum += activationHidden[j] * weightOutput[j][k]
             }
             log(logLevel, "  sigmoid(sum $sum) = " + sigmoid(sum))
-            ao[k] = sigmoid(sum)
+            activationOutput[k] = sigmoid(sum)
         }
 
-        return ao
+        return activationOutput
     }
 
     /**
+     * Use the targets to backpropagate through the graph, starting with the output, then the hidden
+     * layer and then the input.
+     *
      * @return the error
      */
     fun backPropagate(targets: List<Float>, learningRate: Float, momentum: Float) : Float {
-        if (targets.size != no) {
-            throw RuntimeException("Expected $no targets but got ${targets.size}")
+        if (targets.size != outputSize) {
+            throw RuntimeException("Expected $outputSize targets but got ${targets.size}")
         }
 
         // Calculate error terms for output
-        val outputDeltas = Vector(no)
-        repeat(no) { k ->
-            val error = targets[k] - ao[k]
-            outputDeltas[k] = sigmoidDerivative(ao[k]) * error
+        val outputDeltas = Vector(outputSize)
+        repeat(outputSize) { k ->
+            val error = targets[k] - activationOutput[k]
+            outputDeltas[k] = sigmoidDerivative(activationOutput[k]) * error
         }
 
         // Calculate error terms for hidden layers
-        val hiddenDeltas = Vector(nh)
-        repeat(nh) { j ->
+        val hiddenDeltas = Vector(hiddenSize)
+        repeat(hiddenSize) { j ->
             var error = 0.0f
-            repeat(no) { k ->
-                error += outputDeltas[k] * wo[j][k]
+            repeat(outputSize) { k ->
+                error += outputDeltas[k] * weightOutput[j][k]
             }
-            hiddenDeltas[j] = sigmoidDerivative(ah[j]) * error
+            hiddenDeltas[j] = sigmoidDerivative(activationHidden[j]) * error
         }
 
         // Update output weights
-        repeat(nh) { j ->
-            repeat(no) { k ->
-                val change = outputDeltas[k] * ah[j]
-                wo[j][k] = wo[j][k] + learningRate * change + momentum * co[j][k]
-                co[j][k] = change
+        repeat(hiddenSize) { j ->
+            repeat(outputSize) { k ->
+                val change = outputDeltas[k] * activationHidden[j]
+                log(2, "      weightOutput[$j][$k] changing from " + weightOutput[j][k]
+                    + " to " + (weightOutput[j][k] + learningRate * change + momentum * momentumOutput[j][k]))
+                weightOutput[j][k] = weightOutput[j][k] + learningRate * change + momentum * momentumOutput[j][k]
+                momentumOutput[j][k] = change
             }
         }
 
         // Update input weights
-        repeat(ni) { i ->
-            repeat(nh) { j ->
-                val change = hiddenDeltas[j] * ai[i]
-                wi[i][j] = wi[i][j] + learningRate * change + momentum * ci[i][j]
-                ci[i][j] = change
+        repeat(inputSize) { i ->
+            repeat(hiddenSize) { j ->
+                val change = hiddenDeltas[j] * activationInput[i]
+                log(2, "      weightInput[$i][$j] changing from " + weightInput[i][j]
+                        + " to " + (weightInput[i][j] + learningRate * change + momentum * momentumInput[i][j]))
+                weightInput[i][j] = weightInput[i][j] + learningRate * change + momentum * momentumInput[i][j]
+                momentumInput[i][j] = change
             }
         }
 
         // Calculate error
         var error = 0.0
         repeat(targets.size) { k ->
-            val diff = targets[k] - ao[k]
+            val diff = targets[k] - activationOutput[k]
             error += 0.5 * diff * diff
         }
 
+        log(2, "      new error: " + error)
         return error.toFloat()
     }
 
+    /**
+     * Train the graph with the given NetworkData, which contains pairs of inputs and expected outputs.
+     */
     fun train(networkDatas: List<NetworkData>, iterations: Int = 1000, learningRate: Float = 0.5f,
             momentum: Float = 0.1f) {
         repeat(iterations) { iteration ->
             var error = 0.0f
             networkDatas.forEach { pattern ->
-                update(pattern.inputs, 3)
+                update(pattern.inputs, logLevel = 3)
                 val bp = backPropagate(pattern.expectedOutputs, learningRate, momentum)
                 error += bp
             }
@@ -140,12 +159,12 @@ class NeuralNetwork(val passedInput: Int, val nh: Int, val no: Int) {
 
     fun test(networkDatas: List<NetworkData>) {
         networkDatas.forEach {
-            log(1, it.inputs.toString() + " -> " + update(it.inputs, 2))
+            log(1, it.inputs.toString() + " -> " + update(it.inputs, logLevel = 2))
         }
     }
 
     fun dump() {
-        log(2, "Input weights:\n" + wi.dump())
-        log(2, "Output weights:\n" + wo.dump())
+        log(2, "Input weights:\n" + weightInput.dump())
+        log(2, "Output weights:\n" + weightOutput.dump())
     }
 }

@@ -1,14 +1,14 @@
 package com.beust.nnk
 
-val LOG_LEVEL = 1
+val LOG_LEVEL = 2
 
 fun log(level: Int, s: String) {
     if (LOG_LEVEL >= level) println(s)
 }
 
 fun main(args: Array<String>) {
-    log(1, "Running neural network xor()")
-    xor()
+//    log(1, "Running neural network xor()")
+//    xor()
 
     log(1, "Running neural network isOdd()")
     isOdd()
