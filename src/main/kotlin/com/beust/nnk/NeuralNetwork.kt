@@ -25,6 +25,9 @@ class NeuralNetwork(val passedInputSize: Int, val hiddenSize: Int, val outputSiz
     val activationOutput = Vector(outputSize, { -> 1.0f })
 
     // Weights
+    // Make sure our initial weights are not going to send our values into the saturated area of the
+    // non linearity function, so spread them gently around 0. In theory, this should be a ratio function
+    // of the fan-in (previous layer size) and fan-out (next layer size) but let's just hardcode for now
     val weightInput = Matrix(inputSize, hiddenSize, { -> rand(-0.2f, 0.2f) })
     val weightOutput = Matrix(hiddenSize, outputSize, { -> rand(-0.2f, 0.2f) })
 
@@ -56,7 +59,7 @@ class NeuralNetwork(val passedInputSize: Int, val hiddenSize: Int, val outputSiz
             var sum = 0.0f
             repeat(inputSize) { i ->
                 val w: List<Float> = weightInput[i]
-                log(logLevel, "    sum += ai[i] ${activationInput[i]} * wi[i][j] ${weightInput[i][j]}")
+                log(logLevel, "    sum += ai[$i] ${activationInput[i]} * wi[i][j] ${weightInput[i][j]}")
                 sum += activationInput[i] * weightInput[i][j]
             }
             activationHidden[j] = sigmoid(sum)
@@ -147,6 +150,7 @@ class NeuralNetwork(val passedInputSize: Int, val hiddenSize: Int, val outputSiz
         repeat(iterations) { iteration ->
             var error = 0.0f
             networkDatas.forEach { pattern ->
+                log(2, "  Current input: " + pattern.inputs)
                 update(pattern.inputs, logLevel = 3)
                 val bp = backPropagate(pattern.expectedOutputs, learningRate, momentum)
                 error += bp
@@ -164,7 +168,7 @@ class NeuralNetwork(val passedInputSize: Int, val hiddenSize: Int, val outputSiz
     }
 
     fun dump() {
-        log(2, "Input weights:\n" + weightInput.dump())
-        log(2, "Output weights:\n" + weightOutput.dump())
+        log(1, "Input weights:\n" + weightInput.dump())
+        log(1, "Output weights:\n" + weightOutput.dump())
     }
 }

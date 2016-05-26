@@ -29,4 +29,6 @@ open class Matrix(val rows: Int, val columns: Int, defaultValue: () -> Float = {
         }
         return result.toString()
     }
+
+    override fun toString() = dump()
 }
