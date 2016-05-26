@@ -35,10 +35,18 @@ class NeuralNetwork(val passedInputSize: Int, val hiddenSize: Int, val outputSiz
     val momentumInput = Matrix(inputSize, hiddenSize)
     val momentumOutput = Matrix(hiddenSize, outputSize)
 
-    // These two should probably be passed as a strategy so we can experiment with different
-    // activation functions but hardcoding tanh for now
-    fun sigmoid(x: Float) = Math.tanh(x.toDouble()).toFloat()
-    fun sigmoidDerivative(x: Float) = 1.0f - x * x
+    /**
+     * The activation function.
+     *
+     * Note: This function and its derivative should probably be passed as a strategy object so we
+     * can experiment with different activation functions but hardcoding tanh for now.
+     */
+    fun activate(x: Float) = Math.tanh(x.toDouble()).toFloat()
+
+    /**
+     * The derivative of the activation function.
+     */
+    fun activateDerivative(x: Float) = 1.0f - x * x
 
     /**
      * Update the graph with the given inputs.
@@ -62,7 +70,7 @@ class NeuralNetwork(val passedInputSize: Int, val hiddenSize: Int, val outputSiz
                 log(logLevel, "    sum += ai[$i] ${activationInput[i]} * wi[i][j] ${weightInput[i][j]}")
                 sum += activationInput[i] * weightInput[i][j]
             }
-            activationHidden[j] = sigmoid(sum)
+            activationHidden[j] = activate(sum)
             log(logLevel, "    final sum going into ah[$j]: " + activationHidden[j])
         }
 
@@ -74,8 +82,8 @@ class NeuralNetwork(val passedInputSize: Int, val hiddenSize: Int, val outputSiz
                 log(logLevel, "         = " + activationHidden[j] * weightOutput[j][k])
                 sum += activationHidden[j] * weightOutput[j][k]
             }
-            log(logLevel, "  sigmoid(sum $sum) = " + sigmoid(sum))
-            activationOutput[k] = sigmoid(sum)
+            log(logLevel, "  sigmoid(sum $sum) = " + activate(sum))
+            activationOutput[k] = activate(sum)
         }
 
         return activationOutput
@@ -96,7 +104,7 @@ class NeuralNetwork(val passedInputSize: Int, val hiddenSize: Int, val outputSiz
         val outputDeltas = Vector(outputSize)
         repeat(outputSize) { k ->
             val error = targets[k] - activationOutput[k]
-            outputDeltas[k] = sigmoidDerivative(activationOutput[k]) * error
+            outputDeltas[k] = activateDerivative(activationOutput[k]) * error
         }
 
         // Calculate error terms for hidden layers
@@ -106,7 +114,7 @@ class NeuralNetwork(val passedInputSize: Int, val hiddenSize: Int, val outputSiz
             repeat(outputSize) { k ->
                 error += outputDeltas[k] * weightOutput[j][k]
             }
-            hiddenDeltas[j] = sigmoidDerivative(activationHidden[j]) * error
+            hiddenDeltas[j] = activateDerivative(activationHidden[j]) * error
         }
 
         // Update output weights
