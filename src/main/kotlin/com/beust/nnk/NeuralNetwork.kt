@@ -5,7 +5,7 @@ import java.util.*
 /**
  * A simple neural network with one hidden layer.
  */
-class NeuralNetwork(val passedInput: Int, val hiddenSize: Int, val outputSize: Int) {
+class NeuralNetwork(val passedInputSize: Int, val hiddenSize: Int, val outputSize: Int) {
 
 //    class Vector2(val size: Int, val defaultValue: () -> Float = { -> 0.0f }) : Matrix(size, 1, defaultValue) {
 //        operator fun set(it: Int, value: Float) {
@@ -17,7 +17,7 @@ class NeuralNetwork(val passedInput: Int, val hiddenSize: Int, val outputSize: I
     val random = Random(1)
     fun rand(min: Float, max: Float) = random.nextFloat() * (max - min) + min
 
-    val inputSize = passedInput + 1 // Add one for the bias node
+    val inputSize = passedInputSize + 1 // Add one for the bias node
 
     // Activations for nodes
     val activationInput = Vector(inputSize, { -> 1.0f })
