@@ -3,24 +3,18 @@ package com.beust.nnk
 import java.util.*
 
 /**
- * A simple neural network with one hidden layer.
+ * A simple neural network with one hidden layer. Learning rate, momemntum and activation function are
+ * all hardcoded in this example but should ideally be configurable.
+ *
+ * @author Cédric Beust <cedric@beust.com>
+ * @since 5/02/2016
  */
-class NeuralNetwork(val passedInputSize: Int, val hiddenSize: Int, val outputSize: Int) {
+class NeuralNetwork(val inputSize: Int, val hiddenSize: Int, val outputSize: Int) {
 
-//    class Vector2(val size: Int, val defaultValue: () -> Float = { -> 0.0f }) : Matrix(size, 1, defaultValue) {
-//        operator fun set(it: Int, value: Float) {
-//            this[it][0] = value
-//        }
-//        override operator fun get(i: Int) = this[i][0]
-//    }
-
-    val random = Random(1)
-    fun rand(min: Float, max: Float) = random.nextFloat() * (max - min) + min
-
-    val inputSize = passedInputSize + 1 // Add one for the bias node
+    val actualInputSize = inputSize + 1 // Add one for the bias node
 
     // Activations for nodes
-    val activationInput = Vector(inputSize, { -> 1.0f })
+    val activationInput = Vector(actualInputSize, { -> 1.0f })
     val activationHidden = Vector(hiddenSize, { -> 1.0f })
     val activationOutput = Vector(outputSize, { -> 1.0f })
 
@@ -28,18 +22,22 @@ class NeuralNetwork(val passedInputSize: Int, val hiddenSize: Int, val outputSiz
     // Make sure our initial weights are not going to send our values into the saturated area of the
     // non linearity function, so spread them gently around 0. In theory, this should be a ratio function
     // of the fan-in (previous layer size) and fan-out (next layer size) but let's just hardcode for now
-    val weightInput = Matrix(inputSize, hiddenSize, { -> rand(-0.2f, 0.2f) })
+    val weightInput = Matrix(actualInputSize, hiddenSize, { -> rand(-0.2f, 0.2f) })
     val weightOutput = Matrix(hiddenSize, outputSize, { -> rand(-0.2f, 0.2f) })
 
     // Weights for momentum
-    val momentumInput = Matrix(inputSize, hiddenSize)
+    val momentumInput = Matrix(actualInputSize, hiddenSize)
     val momentumOutput = Matrix(hiddenSize, outputSize)
+
+    /** Fix the random seed for reproducible numbers while debugging */
+    val random = Random(1)
+    fun rand(min: Float, max: Float) = random.nextFloat() * (max - min) + min
 
     /**
      * The activation function.
      *
      * Note: This function and its derivative should probably be passed as a strategy object so we
-     * can experiment with different activation functions but hardcoding tanh for now.
+     * can experiment with different activation functions but hardcoding it to tanh for now.
      */
     fun activate(x: Float) = Math.tanh(x.toDouble()).toFloat()
 
@@ -49,23 +47,24 @@ class NeuralNetwork(val passedInputSize: Int, val hiddenSize: Int, val outputSiz
     fun activateDerivative(x: Float) = 1.0f - x * x
 
     /**
-     * Update the graph with the given inputs.
+     * Run the graph with the given inputs.
+     *
      * @return the outputs as a vector.
      */
-    fun update(inputs: List<Float>, logLevel: Int) : Vector {
-        if (inputs.size != inputSize -1) {
-            throw RuntimeException("Expected ${inputSize - 1} inputs but got ${inputs.size}")
+    fun runGraph(inputs: List<Float>, logLevel: Int) : Vector {
+        if (inputs.size != actualInputSize -1) {
+            throw RuntimeException("Expected ${actualInputSize - 1} inputs but got ${inputs.size}")
         }
 
         // Input activations (note: -1 since we don't count the bias node)
-        repeat(inputSize - 1) {
+        repeat(actualInputSize - 1) {
             activationInput[it] = inputs[it]
         }
 
         // Hidden activations
         repeat(hiddenSize) { j ->
             var sum = 0.0f
-            repeat(inputSize) { i ->
+            repeat(actualInputSize) { i ->
                 val w: List<Float> = weightInput[i]
                 log(logLevel, "    sum += ai[$i] ${activationInput[i]} * wi[i][j] ${weightInput[i][j]}")
                 sum += activationInput[i] * weightInput[i][j]
@@ -129,7 +128,7 @@ class NeuralNetwork(val passedInputSize: Int, val hiddenSize: Int, val outputSiz
         }
 
         // Update input weights
-        repeat(inputSize) { i ->
+        repeat(actualInputSize) { i ->
             repeat(hiddenSize) { j ->
                 val change = hiddenDeltas[j] * activationInput[i]
                 log(2, "      weightInput[$i][$j] changing from " + weightInput[i][j]
@@ -159,7 +158,7 @@ class NeuralNetwork(val passedInputSize: Int, val hiddenSize: Int, val outputSiz
             var error = 0.0f
             networkDatas.forEach { pattern ->
                 log(2, "  Current input: " + pattern.inputs)
-                update(pattern.inputs, logLevel = 3)
+                runGraph(pattern.inputs, logLevel = 3)
                 val bp = backPropagate(pattern.expectedOutputs, learningRate, momentum)
                 error += bp
             }
@@ -171,7 +170,7 @@ class NeuralNetwork(val passedInputSize: Int, val hiddenSize: Int, val outputSiz
 
     fun test(networkDatas: List<NetworkData>) {
         networkDatas.forEach {
-            log(1, it.inputs.toString() + " -> " + update(it.inputs, logLevel = 2))
+            log(1, it.inputs.toString() + " -> " + runGraph(it.inputs, logLevel = 2))
         }
     }
 
@@ -180,3 +179,12 @@ class NeuralNetwork(val passedInputSize: Int, val hiddenSize: Int, val outputSiz
         log(1, "Output weights:\n" + weightOutput.dump())
     }
 }
+
+//    class Vector2(val size: Int, val defaultValue: () -> Float = { -> 0.0f }) : Matrix(size, 1, defaultValue) {
+//        operator fun set(it: Int, value: Float) {
+//            this[it][0] = value
+//        }
+//        override operator fun get(i: Int) = this[i][0]
+//    }
+
+

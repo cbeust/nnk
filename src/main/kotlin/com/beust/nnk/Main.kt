@@ -18,7 +18,7 @@ fun main(args: Array<String>) {
 }
 
 fun isOdd2() {
-    with(NeuralNetwork(1, 16, 1)) {
+    with(NeuralNetwork(inputSize = 1, hiddenSize = 16, outputSize = 1)) {
         val patterns = (0..100).map {
             NetworkData.create(listOf(it), listOf(it % 2))
         }
@@ -35,7 +35,7 @@ fun isOdd2() {
 }
 
 fun isOdd() {
-    with(NeuralNetwork(4, 2, 1)) {
+    with(NeuralNetwork(inputSize = 4, hiddenSize = 2, outputSize = 1)) {
         val patterns = listOf(
             NetworkData.create(listOf(0, 0, 0, 0), listOf(0)),
             NetworkData.create(listOf(0, 0, 0, 1), listOf(1)),
@@ -59,7 +59,7 @@ fun isOdd() {
 }
 
 fun xor() {
-    with(NeuralNetwork(2, 2, 1)) {
+    with(NeuralNetwork(inputSize = 2, hiddenSize = 2, outputSize = 1)) {
         val patterns = listOf(
             NetworkData.create(listOf(0, 0), listOf(0)),
             NetworkData.create(listOf(0, 1), listOf(1)),
