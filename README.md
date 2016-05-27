@@ -1,2 +1,8 @@
 # nnk
-Neural Network for Kotlin
+A simple neural network for Kotlin
+
+Run with:
+
+```
+./kobaltw run
+```
