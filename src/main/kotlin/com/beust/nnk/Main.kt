@@ -1,14 +1,14 @@
 package com.beust.nnk
 
-val LOG_LEVEL = 2
+val LOG_LEVEL = 1
 
 fun log(level: Int, s: String) {
     if (LOG_LEVEL >= level) println(s)
 }
 
 fun main(args: Array<String>) {
-//    log(1, "Running neural network xor()")
-//    xor()
+    log(1, "Running neural network xor()")
+    xor()
 
     log(1, "Running neural network isOdd()")
     isOdd()
@@ -40,17 +40,23 @@ fun isOdd() {
             NetworkData.create(listOf(0, 0, 0, 0), listOf(0)),
             NetworkData.create(listOf(0, 0, 0, 1), listOf(1)),
             NetworkData.create(listOf(0, 0, 1, 0), listOf(0)),
-            NetworkData.create(listOf(0, 0, 1, 1), listOf(1)),
-            NetworkData.create(listOf(0, 1, 0, 0), listOf(0)),
-            NetworkData.create(listOf(0, 1, 0, 1), listOf(1)),
             NetworkData.create(listOf(0, 1, 1, 0), listOf(0)),
-            NetworkData.create(listOf(0, 1, 1, 1), listOf(1))
+            NetworkData.create(listOf(0, 1, 1, 1), listOf(1)),
+            NetworkData.create(listOf(1, 0, 1, 0), listOf(0)),
+            NetworkData.create(listOf(1, 0, 1, 1), listOf(1)),
+            NetworkData.create(listOf(1, 1, 0, 0), listOf(0)),
+            NetworkData.create(listOf(1, 1, 0, 1), listOf(1)),
+            NetworkData.create(listOf(1, 1, 1, 0), listOf(0)),
+            NetworkData.create(listOf(1, 1, 1, 1), listOf(1))
         )
         train(patterns)
 
         val testPatterns = listOf(
-            NetworkData.create(listOf(1, 0, 1, 1), listOf(1)),
-            NetworkData.create(listOf(1, 1, 1, 0), listOf(0))
+            NetworkData.create(listOf(0, 0, 1, 1), listOf(1)),
+            NetworkData.create(listOf(0, 1, 0, 0), listOf(0)),
+            NetworkData.create(listOf(0, 1, 0, 1), listOf(1)),
+            NetworkData.create(listOf(1, 0, 0, 0), listOf(0)),
+            NetworkData.create(listOf(1, 0, 0, 1), listOf(1))
         )
         test(testPatterns)
 

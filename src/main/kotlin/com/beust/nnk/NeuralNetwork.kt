@@ -30,7 +30,9 @@ class NeuralNetwork(val inputSize: Int, val hiddenSize: Int, val outputSize: Int
     val momentumOutput = Matrix(hiddenSize, outputSize)
 
     /** Fix the random seed for reproducible numbers while debugging */
-    val random = Random(1)
+    companion object {
+        val random = Random(1)
+    }
     fun rand(min: Float, max: Float) = random.nextFloat() * (max - min) + min
 
     /**
@@ -175,8 +177,8 @@ class NeuralNetwork(val inputSize: Int, val hiddenSize: Int, val outputSize: Int
     }
 
     fun dump() {
-        log(1, "Input weights:\n" + weightInput.dump())
-        log(1, "Output weights:\n" + weightOutput.dump())
+        log(2, "Input weights:\n" + weightInput.dump())
+        log(2, "Output weights:\n" + weightOutput.dump())
     }
 }
 
