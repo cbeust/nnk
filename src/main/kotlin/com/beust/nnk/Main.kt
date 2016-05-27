@@ -19,16 +19,16 @@ fun main(args: Array<String>) {
 
 fun isOdd2() {
     with(NeuralNetwork(inputSize = 1, hiddenSize = 16, outputSize = 1)) {
-        val patterns = (0..100).map {
+        val trainingValues = (0..100).map {
             NetworkData.create(listOf(it), listOf(it % 2))
         }
-        train(patterns)
+        train(trainingValues)
 
-        val testPatterns = listOf(
+        val testValues = listOf(
             NetworkData.create(listOf(21), listOf(1)),
             NetworkData.create(listOf(32), listOf(0))
         )
-        test(testPatterns)
+        test(testValues)
 
         dump()
     }
@@ -36,7 +36,7 @@ fun isOdd2() {
 
 fun isOdd() {
     with(NeuralNetwork(inputSize = 4, hiddenSize = 2, outputSize = 1)) {
-        val patterns = listOf(
+        val trainingValues = listOf(
             NetworkData.create(listOf(0, 0, 0, 0), listOf(0)),
             NetworkData.create(listOf(0, 0, 0, 1), listOf(1)),
             NetworkData.create(listOf(0, 0, 1, 0), listOf(0)),
@@ -49,16 +49,16 @@ fun isOdd() {
             NetworkData.create(listOf(1, 1, 1, 0), listOf(0)),
             NetworkData.create(listOf(1, 1, 1, 1), listOf(1))
         )
-        train(patterns)
+        train(trainingValues)
 
-        val testPatterns = listOf(
+        val testValues = listOf(
             NetworkData.create(listOf(0, 0, 1, 1), listOf(1)),
             NetworkData.create(listOf(0, 1, 0, 0), listOf(0)),
             NetworkData.create(listOf(0, 1, 0, 1), listOf(1)),
             NetworkData.create(listOf(1, 0, 0, 0), listOf(0)),
             NetworkData.create(listOf(1, 0, 0, 1), listOf(1))
         )
-        test(testPatterns)
+        test(testValues)
 
         dump()
     }
@@ -66,12 +66,12 @@ fun isOdd() {
 
 fun xor() {
     with(NeuralNetwork(inputSize = 2, hiddenSize = 2, outputSize = 1)) {
-        val patterns = listOf(
+        val trainingValues = listOf(
             NetworkData.create(listOf(0, 0), listOf(0)),
             NetworkData.create(listOf(0, 1), listOf(1)),
             NetworkData.create(listOf(1, 0), listOf(1)),
             NetworkData.create(listOf(1, 1), listOf(0)))
-        train(patterns)
-        test(patterns)
+        train(trainingValues)
+        test(trainingValues)
     }
 }
