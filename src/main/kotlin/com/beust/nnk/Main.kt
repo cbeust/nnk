@@ -1,12 +1,25 @@
 package com.beust.nnk
 
-val LOG_LEVEL = 1
+import com.beust.jcommander.JCommander
+import com.beust.jcommander.Parameter
+
+var LOG_LEVEL = 1
 
 fun log(level: Int, s: String) {
     if (LOG_LEVEL >= level) println(s)
 }
 
-fun main(args: Array<String>) {
+fun main(argv: Array<String>) {
+    class Args {
+        @Parameter(names = arrayOf("--log"), description = "Define the log level (1-3)")
+        var log: Int = 1
+    }
+
+    val args = Args()
+    JCommander(args).parse(*argv)
+    LOG_LEVEL = args.log
+
+    println("LOG LEVEL IS " + LOG_LEVEL)
     log(1, "Running neural network xor()")
     xor()
 

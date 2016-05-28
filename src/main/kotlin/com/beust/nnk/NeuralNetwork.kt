@@ -83,7 +83,7 @@ class NeuralNetwork(val inputSize: Int, val hiddenSize: Int, val outputSize: Int
                 log(logLevel, "         = " + activationHidden[j] * weightOutput[j][k])
                 sum += activationHidden[j] * weightOutput[j][k]
             }
-            log(logLevel, "  sigmoid(sum $sum) = " + activate(sum))
+            log(logLevel, "  activate(sum $sum) = " + activate(sum))
             activationOutput[k] = activate(sum)
         }
 
@@ -122,7 +122,7 @@ class NeuralNetwork(val inputSize: Int, val hiddenSize: Int, val outputSize: Int
         repeat(hiddenSize) { j ->
             repeat(outputSize) { k ->
                 val change = outputDeltas[k] * activationHidden[j]
-                log(2, "      weightOutput[$j][$k] changing from " + weightOutput[j][k]
+                log(3, "      weightOutput[$j][$k] changing from " + weightOutput[j][k]
                     + " to " + (weightOutput[j][k] + learningRate * change + momentum * momentumOutput[j][k]))
                 weightOutput[j][k] = weightOutput[j][k] + learningRate * change + momentum * momentumOutput[j][k]
                 momentumOutput[j][k] = change
@@ -133,7 +133,7 @@ class NeuralNetwork(val inputSize: Int, val hiddenSize: Int, val outputSize: Int
         repeat(actualInputSize) { i ->
             repeat(hiddenSize) { j ->
                 val change = hiddenDeltas[j] * activationInput[i]
-                log(2, "      weightInput[$i][$j] changing from " + weightInput[i][j]
+                log(3, "      weightInput[$i][$j] changing from " + weightInput[i][j]
                         + " to " + (weightInput[i][j] + learningRate * change + momentum * momentumInput[i][j]))
                 weightInput[i][j] = weightInput[i][j] + learningRate * change + momentum * momentumInput[i][j]
                 momentumInput[i][j] = change
@@ -147,7 +147,7 @@ class NeuralNetwork(val inputSize: Int, val hiddenSize: Int, val outputSize: Int
             error += 0.5 * diff * diff
         }
 
-        log(2, "      new error: " + error)
+        log(3, "      new error: " + error)
         return error.toFloat()
     }
 
@@ -159,7 +159,7 @@ class NeuralNetwork(val inputSize: Int, val hiddenSize: Int, val outputSize: Int
         repeat(iterations) { iteration ->
             var error = 0.0f
             networkDatas.forEach { pattern ->
-                log(2, "  Current input: " + pattern.inputs)
+                log(3, "  Current input: " + pattern.inputs)
                 runGraph(pattern.inputs, logLevel = 3)
                 val bp = backPropagate(pattern.expectedOutputs, learningRate, momentum)
                 error += bp
@@ -172,7 +172,7 @@ class NeuralNetwork(val inputSize: Int, val hiddenSize: Int, val outputSize: Int
 
     fun test(networkDatas: List<NetworkData>) {
         networkDatas.forEach {
-            log(1, it.inputs.toString() + " -> " + runGraph(it.inputs, logLevel = 2))
+            log(1, it.inputs.toString() + " -> " + runGraph(it.inputs, logLevel = 3))
         }
     }
 
