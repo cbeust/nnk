@@ -3,7 +3,7 @@ package com.beust.nnk
 import java.util.*
 
 open class Matrix(val rows: Int, val columns: Int, defaultValue: () -> Float = { -> 0.0f }) {
-    val content = ArrayList<ArrayList<Float>>(rows * columns)
+    val content = ArrayList<ArrayList<Float>>(rows)
 
     init {
         repeat(rows) { j ->
