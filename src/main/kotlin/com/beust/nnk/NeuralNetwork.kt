@@ -10,7 +10,7 @@ import java.util.*
  * @since 5/02/2016
  */
 
-class NeuralNetworkMod(val inputSize: Int, val hiddenSize: Int, val outputSize: Int, val hiddenNonLinearity: NonLinearity = NonLinearities.get("TANH"), val outputNonLinearity: NonLinearity = NonLinearities.get("TANH")) {
+class NeuralNetwork(val inputSize: Int, val hiddenSize: Int, val outputSize: Int, val hiddenNonLinearity: NonLinearity = NonLinearities.TANH.value, val outputNonLinearity: NonLinearity = NonLinearities.LEAKYRELU.value) {
 
     val actualInputSize = inputSize + 1 // Add one for the bias node
 
