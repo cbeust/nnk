@@ -9,7 +9,13 @@ import java.util.*
  * @author Cédric Beust <cedric@beust.com>
  * @since 5/02/2016
  */
-class NeuralNetwork(val inputSize: Int, val hiddenSize: Int, val outputSize: Int) {
+
+
+data class NonLineatity(
+        val activate :((Float) -> Float),
+        val activateDerivative:((Float) -> Float)
+)
+class NeuralNetworkMod(val inputSize: Int, val hiddenSize: Int, val outputSize: Int,val hiddenNonLinearity:NonLineatity = NonLineatity({x->Math.tanh(x.toDouble()).toFloat()},{x->(1.0f - x * x)}), val outputNonLinearity:NonLineatity = NonLineatity({x->Math.tanh(x.toDouble()).toFloat()},{x->(1.0f - x * x)})) {
 
     val actualInputSize = inputSize + 1 // Add one for the bias node
 
@@ -35,18 +41,6 @@ class NeuralNetwork(val inputSize: Int, val hiddenSize: Int, val outputSize: Int
     }
     fun rand(min: Float, max: Float) = random.nextFloat() * (max - min) + min
 
-    /**
-     * The activation function.
-     *
-     * Note: This function and its derivative should probably be passed as a strategy object so we
-     * can experiment with different activation functions but hardcoding it to tanh for now.
-     */
-    fun activate(x: Float) = Math.tanh(x.toDouble()).toFloat()
-
-    /**
-     * The derivative of the activation function.
-     */
-    fun activateDerivative(x: Float) = 1.0f - x * x
 
     /**
      * Run the graph with the given inputs.
@@ -71,7 +65,7 @@ class NeuralNetwork(val inputSize: Int, val hiddenSize: Int, val outputSize: Int
                 log(logLevel, "    sum += ai[$i] ${activationInput[i]} * wi[i][j] ${weightInput[i][j]}")
                 sum += activationInput[i] * weightInput[i][j]
             }
-            activationHidden[j] = activate(sum)
+            activationHidden[j] = hiddenNonLinearity.activate(sum)
             log(logLevel, "    final sum going into ah[$j]: " + activationHidden[j])
         }
 
@@ -83,8 +77,9 @@ class NeuralNetwork(val inputSize: Int, val hiddenSize: Int, val outputSize: Int
                 log(logLevel, "         = " + activationHidden[j] * weightOutput[j][k])
                 sum += activationHidden[j] * weightOutput[j][k]
             }
-            log(logLevel, "  activate(sum $sum) = " + activate(sum))
-            activationOutput[k] = activate(sum)
+            activationOutput[k] = outputNonLinearity.activate(sum)
+            log(logLevel, "  activate(sum $sum) = " + activationOutput)
+            
         }
 
         return activationOutput
@@ -105,7 +100,7 @@ class NeuralNetwork(val inputSize: Int, val hiddenSize: Int, val outputSize: Int
         val outputDeltas = Vector(outputSize)
         repeat(outputSize) { k ->
             val error = targets[k] - activationOutput[k]
-            outputDeltas[k] = activateDerivative(activationOutput[k]) * error
+            outputDeltas[k] = outputNonLinearity.activateDerivative(activationOutput[k]) * error
         }
 
         // Calculate error terms for hidden layers
@@ -115,7 +110,7 @@ class NeuralNetwork(val inputSize: Int, val hiddenSize: Int, val outputSize: Int
             repeat(outputSize) { k ->
                 error += outputDeltas[k] * weightOutput[j][k]
             }
-            hiddenDeltas[j] = activateDerivative(activationHidden[j]) * error
+            hiddenDeltas[j] = hiddenNonLinearity.activateDerivative(activationHidden[j]) * error
         }
 
         // Update output weights
@@ -123,7 +118,7 @@ class NeuralNetwork(val inputSize: Int, val hiddenSize: Int, val outputSize: Int
             repeat(outputSize) { k ->
                 val change = outputDeltas[k] * activationHidden[j]
                 log(3, "      weightOutput[$j][$k] changing from " + weightOutput[j][k]
-                    + " to " + (weightOutput[j][k] + learningRate * change + momentum * momentumOutput[j][k]))
+                        + " to " + (weightOutput[j][k] + learningRate * change + momentum * momentumOutput[j][k]))
                 weightOutput[j][k] = weightOutput[j][k] + learningRate * change + momentum * momentumOutput[j][k]
                 momentumOutput[j][k] = change
             }
@@ -155,7 +150,7 @@ class NeuralNetwork(val inputSize: Int, val hiddenSize: Int, val outputSize: Int
      * Train the graph with the given NetworkData, which contains pairs of inputs and expected outputs.
      */
     fun train(networkDatas: List<NetworkData>, iterations: Int = 1000, learningRate: Float = 0.5f,
-            momentum: Float = 0.1f) {
+              momentum: Float = 0.1f) {
         repeat(iterations) { iteration ->
             var error = 0.0f
             networkDatas.forEach { pattern ->
