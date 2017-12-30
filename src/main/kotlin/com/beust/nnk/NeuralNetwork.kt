@@ -10,12 +10,7 @@ import java.util.*
  * @since 5/02/2016
  */
 
-
-data class NonLineatity(
-        val activate :((Float) -> Float),
-        val activateDerivative:((Float) -> Float)
-)
-class NeuralNetworkMod(val inputSize: Int, val hiddenSize: Int, val outputSize: Int,val hiddenNonLinearity:NonLineatity = NonLineatity({x->Math.tanh(x.toDouble()).toFloat()},{x->(1.0f - x * x)}), val outputNonLinearity:NonLineatity = NonLineatity({x->Math.tanh(x.toDouble()).toFloat()},{x->(1.0f - x * x)})) {
+class NeuralNetworkMod(val inputSize: Int, val hiddenSize: Int, val outputSize: Int, val hiddenNonLinearity: NonLinearity = NonLinearities.get("TANH"), val outputNonLinearity: NonLinearity = NonLinearities.get("TANH")) {
 
     val actualInputSize = inputSize + 1 // Add one for the bias node
 
